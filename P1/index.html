@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lifestyle Sustainability Data Analysis Dashboard</title>
+</head>
+<body style="font-family: Arial, sans-serif; line-height: 1.6; max-width: 900px; margin: auto;">
+      <hr/> 
+      <h1>🌱 Lifestyle Sustainability Data Analysis Dashboard</h1>
+      <hr/>
+    <p>
+        This project presents an interactive data visualization dashboard analyzing lifestyle sustainability factors across various dimensions like environment, household, and personal choices. 
+        The analysis is based on survey data from 499 participants and aims to understand behaviors impacting sustainability.
+    </p>
+          <hr/>
+    
+    <!-- Images at the Top -->
+    <div align="center">
+        <img width="875" height="487" alt="Dashboard Overview" src="assets/m1.png" />
+    </div>
+ 
+    <div align="center">
+        <img width="879" height="485" alt="Household Section" src="assets/m2.png" />
+    </div>
+
+    <div align="center">
+        <img width="878" height="487" alt="Lifestyle Section" src="assets/m3.png" />
+    </div>
+   
+      <hr/>
+  
+
+    <h2>📊 Dashboard Overview</h2>
+    <p>
+        The dashboard is divided into three main sections, each designed to explore specific aspects of sustainability and provide actionable insights.
+    </p>
+
+    <h3>1. <b>Overview</b></h3>
+    <ul>
+        <li>Total number of participants</li>
+        <li>Environmental awareness score by gender</li>
+        <li>Age distribution of participants</li>
+        <li>Physical activity levels</li>
+        <li>Rating distribution on sustainability understanding</li>
+        <li>Environmental awareness levels</li>
+    </ul>
+    <p><b>📖 Storyline:</b><br>
+        This section analyzes the basic demographics and environmental awareness of participants. 
+        The goal is to understand <b>who the participants are</b>, how aware they are of sustainability issues, and whether factors like gender, age, or physical activity influence this awareness. 
+        It helps to identify <b>key target groups</b> for sustainability outreach and <b>education programs</b>.
+    </p>
+
+    <h3>2. <b>Household</b></h3>
+    <ul>
+        <li>Water usage per person by home type</li>
+        <li>Community involvement in sustainability</li>
+        <li>Home location (Urban/Suburban/Rural)</li>
+        <li>Electricity efficiency index by energy source</li>
+        <li>Preferred modes of transportation</li>
+    </ul>
+    <p><b>📖 Storyline:</b><br>
+        Sustainability starts at home. This section explores <b>household behaviors</b> that influence environmental impact—such as water and energy consumption, location, and travel choices. 
+        It sheds light on how <b>home type and infrastructure affect sustainable living</b>, and helps identify areas where lifestyle adjustments can reduce carbon footprint.
+    </p>
+
+    <h3>3. <b>Lifestyle</b></h3>
+    <ul>
+        <li>Local food impact score by food frequency</li>
+        <li>Waste disposal methods</li>
+        <li>Food & clothing consumption habits</li>
+        <li>Sustainability score based on diet type</li>
+        <li>Use of sustainable brands</li>
+        <li>Overall lifestyle sustainability score</li>
+    </ul>
+    <p><b>📖 Storyline:</b><br>
+        Lifestyle choices play a major role in sustainability. This section dives into <b>individual habits</b> like food sourcing, brand preferences, diet, and waste disposal. 
+        It highlights how these behaviors impact the environment and calculates a <b>sustainability score</b> to measure the eco-friendliness of one’s lifestyle. 
+        It’s aimed at encouraging <b>more conscious consumer behavior</b>.
+    </p>
+      <hr/>
+    <h2>📌 Key Insights</h2>
+    <ul>
+        <li>Majority of participants engage in <b>moderate physical activity</b>.</li>
+        <li><b>Females and non-binary individuals</b> show higher environmental awareness scores.</li>
+        <li>Most people live in <b>suburban or urban</b> areas and use <b>public transport or cars</b>.</li>
+        <li>Only <b>47% of participants use sustainable brands</b>.</li>
+        <li><b>Recycling</b> is the most common disposal method, followed by landfill usage.</li>
+    </ul>
+      <hr/>
+    <h2>🧮 DAX Measures Used</h2>
+    <pre>
+1. ElectricityEfficiencyIndex = 
+DIVIDE(
+    SUM(lifestyle_sustainability_data[EnvironmentalAwareness]),
+    SUM(lifestyle_sustainability_data[MonthlyElectricityConsumption])
+)
+
+2. EnvironmentalAwarenessScore = 
+AVERAGEX(
+    FILTER(
+        lifestyle_sustainability_data,
+        NOT(ISBLANK(lifestyle_sustainability_data[EnvironmentalAwareness]))
+    ),
+    lifestyle_sustainability_data[EnvironmentalAwareness]
+)
+
+3. LocalFoodImpactScore = 
+AVERAGEX(
+    lifestyle_sustainability_data,
+    SWITCH(
+        lifestyle_sustainability_data[LocalFoodFrequency],
+        "Always", 5,
+        "Often", 4,
+        "Sometimes", 3,
+        "Rarely", 2,
+        "Never", 1,
+        0
+    ) * 
+    DIVIDE(lifestyle_sustainability_data[EnvironmentalAwareness], 5)
+)
+
+4. SustainabilityScore = 
+VAR AwarenessScore = DIVIDE(AVERAGE(lifestyle_sustainability_data[EnvironmentalAwareness]), 5) * 25
+VAR WaterScore = 
+    VAR AvgWater = AVERAGE(lifestyle_sustainability_data[MonthlyWaterConsumption])
+    RETURN IF(AvgWater < 1000, 25, IF(AvgWater < 2000, 15, 5))
+VAR ElectricityScore = 
+    VAR AvgElec = AVERAGE(lifestyle_sustainability_data[MonthlyElectricityConsumption])
+    RETURN IF(AvgElec < 300, 25, IF(AvgElec < 500, 15, 5))
+VAR PlasticPenalty = 
+    IF(MAX(lifestyle_sustainability_data[UsingPlasticProducts]) = "Yes", -10, 0)
+VAR FinalScore = AwarenessScore + WaterScore + ElectricityScore + PlasticPenalty
+RETURN ROUND(FinalScore, 1)
+
+5. SustainabilityScore1 = 
+AVERAGEX(
+    lifestyle_sustainability_data,
+    DIVIDE(
+        lifestyle_sustainability_data[EnvironmentalAwareness] +
+        lifestyle_sustainability_data[Rating] +
+        SWITCH(TRUE(),
+            lifestyle_sustainability_data[DisposalMethods] = "Compost", 5,
+            lifestyle_sustainability_data[DisposalMethods] = "Recycle", 4,
+            lifestyle_sustainability_data[DisposalMethods] = "Trash", 2,
+            1
+        ),
+        3
+    )
+)
+
+6. Total = COUNTROWS(lifestyle_sustainability_data)
+
+7. WaterPerPerson = 
+DIVIDE(
+    SUM(lifestyle_sustainability_data[MonthlyWaterConsumption]),
+    SUM(lifestyle_sustainability_data[HomeSize])
+)
+    </pre>
+      <hr/>
+</body>
+</html>
